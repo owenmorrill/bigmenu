@@ -1,0 +1,17 @@
+bigmenu.menu:
+  path: '/admin/structure/menu/manage/{menu}/bigmenu'
+  defaults:
+    _entity_form: 'menu.edit_bigmenu'
+    _title_callback: '\Drupal\menu_ui\Controller\MenuController::menuTitle'
+  requirements:
+    _entity_access: 'menu.update'
+    _permission: 'use bigmenu'
+
+bigmenu.menu_link:
+  path: 'admin/structure/menu/manage/{menu}/bigmenu/link/{menu_link}'
+  defaults:
+    _title: 'Edit a slice of a menu'
+    _entity_form: 'menu.edit_bigmenu_slice'
+  requirements:
+    _entity_access: 'menu.update'
+    _permission: 'use bigmenu'
