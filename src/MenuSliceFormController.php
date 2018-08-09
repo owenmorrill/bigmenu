@@ -103,4 +103,12 @@ class MenuSliceFormController extends MenuFormLinkController {
     return $form;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function save(array $form, FormStateInterface $form_state) {
+    parent::save($form, $form_state);
+    $form_state->setRedirectUrl(Url::fromRoute('<current>'));
+  }
+
 }
