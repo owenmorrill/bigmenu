@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Core\Render\Element\BigMenuButton.
- */
-
 namespace Drupal\bigmenu\Element;
 
 use Drupal\Core\Form\FormStateInterface;
@@ -14,8 +9,8 @@ use Drupal\Core\Render\Element\FormElement;
 /**
  * Provides an action big_menu_button form element.
  *
- * When the big_menu_button is pressed, the form will be submitted to Drupal, where it is
- * validated and rebuilt. The submit handler is not invoked.
+ * When the big_menu_button is pressed, the form will be submitted to Drupal,
+ * where it is validated and rebuilt. The submit handler is not invoked.
  *
  * Properties:
  * - #limit_validation_errors: An array of form element keys that will block
@@ -62,11 +57,21 @@ class BigMenuButton extends FormElement {
 
   /**
    * Processes a form big_menu_button element.
+   *
+   * @param array $element
+   *   The element.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   * @param array $complete_form
+   *   The complete form.
+   *
+   * @return array
+   *   The processed element.
    */
-  public static function processBigMenuButton(&$element, FormStateInterface $form_state, &$complete_form) {
-    // If this is a big_menu_button intentionally allowing incomplete form submission
-    // (e.g., a "Previous" or "Add another item" button), then also skip
-    // client-side validation.
+  public static function processBigMenuButton(array &$element, FormStateInterface $form_state, array &$complete_form) {
+    // If this is a big_menu_button intentionally allowing incomplete form
+    // submission (e.g., a "Previous" or "Add another item" button), then also
+    // skip client-side validation.
     if (isset($element['#limit_validation_errors']) && $element['#limit_validation_errors'] !== FALSE) {
       $element['#attributes']['formnovalidate'] = 'formnovalidate';
     }
@@ -79,14 +84,13 @@ class BigMenuButton extends FormElement {
    * @param array $element
    *   An associative array containing the properties of the element.
    *   Properties used: #attributes, #button_type, #name, #value.
-   *
-   * The #button_type property accepts any value, though core themes have CSS that
-   * styles the following button_types appropriately: 'primary', 'danger'.
+   *   The #button_type property accepts any value, though core themes have CSS
+   *   that styles the following button_types appropriately 'primary', 'danger'.
    *
    * @return array
    *   The $element with prepared variables ready for input.html.twig.
    */
-  public static function preRenderBigMenuButton($element) {
+  public static function preRenderBigMenuButton(array $element) {
     $element['#attributes']['type'] = 'submit';
     Element::setAttributes($element, array('id', 'name', 'value'));
 
