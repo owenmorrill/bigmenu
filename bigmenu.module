@@ -47,16 +47,3 @@ function bigmenu_menu_alter(&$items) {
   $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
   $items['admin/structure/menu/manage/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
 }
-
-/**
- * Implemenation of hook_theme().
- */
-function bigmenu_theme() {
-  return array(
-    'bigmenu_overview_form' => array(
-      'file' => 'bigmenu.admin.inc',
-      'arguments' => array('form' => NULL),
-      'render element' => 'form',
-    ),
-  );
-}
