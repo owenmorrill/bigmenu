@@ -2,8 +2,7 @@
 
 /**
  * @file
- *
- * Alternative to core menu management
+ * Alternative to core menu management.
  *
  * Needed when menus get to big to load on one page.
  */

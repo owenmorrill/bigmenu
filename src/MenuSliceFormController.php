@@ -22,39 +22,39 @@ class MenuSliceFormController extends MenuFormLinkController {
       $form_state->set('menu_overview_form_parents', []);
     }
 
-    // Use Menu UI adminforms
+    // Use Menu UI adminforms.
     $form['#attached']['library'][] = 'menu_ui/drupal.menu_ui.adminforms';
 
     // Add a link to go back to the full menu.
-    $form['back_link'][] = array(
+    $form['back_link'][] = [
       '#type' => 'link',
       '#title' => sprintf('Back to top level %s menu', $this->entity->id()),
-      '#url' => Url::fromRoute('bigmenu.menu', array(
+      '#url' => Url::fromRoute('bigmenu.menu', [
         'menu' => $this->entity->id(),
-      )),
-    );
+      ]),
+    ];
 
-    $form['links'] = array(
+    $form['links'] = [
       '#type' => 'table',
       '#theme' => 'table__menu_overview',
-      '#header' => array(
+      '#header' => [
         $this->t('Menu link'),
         $this->t('Edit children'),
-        array(
+        [
           'data' => $this->t('Enabled'),
-          'class' => array('checkbox'),
-        ),
+          'class' => ['checkbox'],
+        ],
         $this->t('Weight'),
-        array(
+        [
           'data' => $this->t('Operations'),
           'colspan' => 3,
-        ),
-      ),
-      '#attributes' => array(
+        ],
+      ],
+      '#attributes' => [
         'id' => 'menu-overview',
-      ),
-      '#tabledrag' => array(
-        array(
+      ],
+      '#tabledrag' => [
+        [
           'action' => 'match',
           'relationship' => 'parent',
           'group' => 'menu-parent',
@@ -62,14 +62,14 @@ class MenuSliceFormController extends MenuFormLinkController {
           'source' => 'menu-id',
           'hidden' => TRUE,
           'limit' => \Drupal::menuTree()->maxDepth() - 1,
-        ),
-        array(
+        ],
+        [
           'action' => 'order',
           'relationship' => 'sibling',
           'group' => 'menu-weight',
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
 
     // No Links available (Empty menu)
     $form['links']['#empty'] = $this->t('There are no menu links yet. <a href=":url">Add link</a>.', [

@@ -19,7 +19,7 @@ class MenuFormController extends DefaultMenuFormController {
    *
    * @var array
    */
-  protected $tree = array();
+  protected $tree = [];
 
   /**
    * Overrides Drupal\menu_ui\MenuForm::buildOverviewForm() to limit the depth.
@@ -61,26 +61,26 @@ class MenuFormController extends DefaultMenuFormController {
     // Use Menu UI adminforms.
     $form['#attached']['library'][] = 'menu_ui/drupal.menu_ui.adminforms';
 
-    $form['links'] = array(
+    $form['links'] = [
       '#type' => 'table',
       '#theme' => 'table__menu_overview',
-      '#header' => array(
+      '#header' => [
         $this->t('Menu link'),
-        array(
+        [
           'data' => $this->t('Enabled'),
-          'class' => array('checkbox'),
-        ),
+          'class' => ['checkbox'],
+        ],
         $this->t('Weight'),
-        array(
+        [
           'data' => $this->t('Operations'),
           'colspan' => 3,
-        ),
-      ),
-      '#attributes' => array(
+        ],
+      ],
+      '#attributes' => [
         'id' => 'menu-overview',
-      ),
-      '#tabledrag' => array(
-        array(
+      ],
+      '#tabledrag' => [
+        [
           'action' => 'match',
           'relationship' => 'parent',
           'group' => 'menu-parent',
@@ -88,14 +88,14 @@ class MenuFormController extends DefaultMenuFormController {
           'source' => 'menu-id',
           'hidden' => TRUE,
           'limit' => \Drupal::menuTree()->maxDepth() - 1,
-        ),
-        array(
+        ],
+        [
           'action' => 'order',
           'relationship' => 'sibling',
           'group' => 'menu-weight',
-        ),
-      ),
-    );
+        ],
+      ],
+    ];
 
     // No Links available (Empty menu)
     $form['links']['#empty'] = $this->t('There are no menu links yet. <a href=":url">Add link</a>.', [
@@ -139,7 +139,7 @@ class MenuFormController extends DefaultMenuFormController {
    * @param string $menu_link
    *   A menu link plugin id.
    */
-  public function processLinks(&$form, &$links, $menu_link) {
+  public function processLinks(array &$form, array &$links, $menu_link) {
     foreach (Element::children($links) as $id) {
       if (isset($links[$id]['#item'])) {
         $element = $links[$id];
@@ -155,37 +155,37 @@ class MenuFormController extends DefaultMenuFormController {
         $form['links'][$id]['#weight'] = $element['#item']->link->getWeight();
 
         // Add special classes to be used for tabledrag.js.
-        $element['parent']['#attributes']['class'] = array('menu-parent');
-        $element['weight']['#attributes']['class'] = array('menu-weight');
-        $element['id']['#attributes']['class'] = array('menu-id');
+        $element['parent']['#attributes']['class'] = ['menu-parent'];
+        $element['weight']['#attributes']['class'] = ['menu-weight'];
+        $element['id']['#attributes']['class'] = ['menu-id'];
 
-        $form['links'][$id]['title'] = array(
-          array(
+        $form['links'][$id]['title'] = [
+          [
             '#theme' => 'indentation',
             '#size' => $element['#item']->depth - 1,
-          ),
+          ],
           $element['title'],
-        );
+        ];
 
-        $form['links'][$id]['root'][] = array();
+        $form['links'][$id]['root'][] = [];
 
         if ($form['links'][$id]['#item']->hasChildren) {
           if (is_null($menu_link) || (isset($menu_link) && $menu_link != $element['#item']->link->getPluginId())) {
-            $uri = Url::fromRoute('bigmenu.menu_link', array(
+            $uri = Url::fromRoute('bigmenu.menu_link', [
               'menu' => $this->entity->id(),
               'menu_link' => $element['#item']->link->getPluginId(),
-            ));
+            ]);
 
-            $form['links'][$id]['root'][] = array(
+            $form['links'][$id]['root'][] = [
               '#type' => 'link',
               '#title' => t('Edit child items'),
               '#url' => $uri,
-            );
+            ];
           }
         }
 
         $form['links'][$id]['enabled'] = $element['enabled'];
-        $form['links'][$id]['enabled']['#wrapper_attributes']['class'] = array('checkbox', 'menu-enabled');
+        $form['links'][$id]['enabled']['#wrapper_attributes']['class'] = ['checkbox', 'menu-enabled'];
 
         $form['links'][$id]['weight'] = $element['weight'];
 
@@ -221,10 +221,10 @@ class MenuFormController extends DefaultMenuFormController {
 
     // We indicate that a menu administrator is running the menu access check.
     $this->getRequest()->attributes->set('_menu_admin', TRUE);
-    $manipulators = array(
-      array('callable' => 'menu.default_tree_manipulators:checkAccess'),
-      array('callable' => 'menu.default_tree_manipulators:generateIndexAndSort'),
-    );
+    $manipulators = [
+      ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+      ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+    ];
     $tree = $this->menuTree->transform($tree, $manipulators);
     $this->getRequest()->attributes->set('_menu_admin', FALSE);
 
@@ -241,7 +241,7 @@ class MenuFormController extends DefaultMenuFormController {
    */
   protected function appendSubtree($depth, $root) {
     // Clear out the overview tree form which has the old tree info in it.
-    $this->overviewTreeForm = array('#tree' => TRUE);
+    $this->overviewTreeForm = ['#tree' => TRUE];
 
     // Get the slice of the subtree that we're looking for.
     $slice_tree = $this->getTree($depth, $root);
