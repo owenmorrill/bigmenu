@@ -1,35 +1,21 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\bigmenu\MenuSliceFormController.
- */
-
 namespace Drupal\bigmenu;
 
-
-use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
-use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 
+/**
+ * Defines class for MenuSliceFormController.
+ */
 class MenuSliceFormController extends MenuFormLinkController {
 
   /**
-   * @var \Drupal\Core\Menu\MenuLinkInterface
-   */
-  protected $menuLink;
-
-
-  protected function prepareEntity() {
-    $this->menuLink = $this->getRequest()->attributes->get('menu_link');
-  }
-
-  /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   protected function buildOverviewFormWithDepth(array &$form, FormStateInterface $form_state, $depth = 1, $menu_link = NULL) {
+    $menu_link_id = $this->getRequest()->attributes->get('menu_link');
     // Ensure that menu_overview_form_submit() knows the parents of this form
     // section.
     if (!$form_state->has('menu_overview_form_parents')) {
@@ -42,10 +28,10 @@ class MenuSliceFormController extends MenuFormLinkController {
     // Add a link to go back to the full menu.
     $form['back_link'][] = array(
       '#type' => 'link',
-      '#title' => sprintf('Back to top level %s menu',  $this->entity->id()),
+      '#title' => sprintf('Back to top level %s menu', $this->entity->id()),
       '#url' => Url::fromRoute('bigmenu.menu', array(
         'menu' => $this->entity->id(),
-      ))
+      )),
     );
 
     $form['links'] = array(
@@ -87,14 +73,16 @@ class MenuSliceFormController extends MenuFormLinkController {
 
     // No Links available (Empty menu)
     $form['links']['#empty'] = $this->t('There are no menu links yet. <a href=":url">Add link</a>.', [
-      ':url' => $this->url('entity.menu.add_link_form', ['menu' => $this->entity->id()], [
-        'query' => ['destination' => $this->entity->url('edit-form')],
-      ]),
+      ':url' => Url::fromRoute(
+        'entity.menu.add_link_form',
+        ['menu' => $this->entity->id()],
+        ['query' => ['destination' => $this->entity->toUrl('edit-form')->toString()]]
+      ),
     ]);
 
     // Get the menu tree if it's not in our property.
     if (empty($this->tree)) {
-      $this->tree = $this->getTree($depth, $this->menuLink);
+      $this->tree = $this->getTree($depth, $menu_link_id);
     }
 
     // Determine the delta; the number of weights to be made available.
@@ -110,7 +98,7 @@ class MenuSliceFormController extends MenuFormLinkController {
 
     $links = $this->buildOverviewTreeForm($this->tree, $delta);
 
-    $this->process_links($form, $links, $this->menuLink);
+    $this->process_links($form, $links, $menu_link_id);
 
     return $form;
   }
