@@ -30,8 +30,6 @@ class MenuSliceFormController extends MenuFormLinkController {
    * @inheritdoc
    */
   protected function buildOverviewFormWithDepth(array &$form, FormStateInterface $form_state, $depth = 1, $menu_link = NULL) {
-    $depth = 5;
-
     // Ensure that menu_overview_form_submit() knows the parents of this form
     // section.
     if (!$form_state->has('menu_overview_form_parents')) {
