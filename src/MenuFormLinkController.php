@@ -114,7 +114,7 @@ class MenuFormLinkController extends MenuFormController {
 
             $form['links'][$id]['root'][] = array(
               '#type' => 'link',
-              '#title' => t('Edit children items'),
+              '#title' => t('Edit child items'),
               '#url' => $uri,
             );
           }
