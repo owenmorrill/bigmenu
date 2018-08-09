@@ -1,36 +1,36 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\bigmenu\MenuFormController.
- */
-
 namespace Drupal\bigmenu;
 
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\HtmlCommand;
+use Drupal\Core\Url;
 use Drupal\menu_ui\MenuForm as DefaultMenuFormController;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
-use Drupal\Core\Link;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Render\Element;
-use Drupal\menu_link_content\Entity\MenuLinkContent;
 
 /**
- * Class MenuFormController
- * @package Drupal\bigmenu
+ * Defines class for MenuFormController.
  */
 class MenuFormController extends DefaultMenuFormController {
 
-  public $tree = array();
+  /**
+   * The menu tree.
+   *
+   * @var array
+   */
+  protected $tree = array();
 
   /**
    * Overrides Drupal\menu_ui\MenuForm::buildOverviewForm() to limit the depth.
    *
    * @param array $form
+   *   The form array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
+   *
    * @return array
+   *   The form.
    */
   protected function buildOverviewForm(array &$form, FormStateInterface $form_state) {
     return $this->buildOverviewFormWithDepth($form, $form_state, 1, NULL);
@@ -40,10 +40,16 @@ class MenuFormController extends DefaultMenuFormController {
    * Build a shallow version of the overview form.
    *
    * @param array $form
+   *   The form array.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state object.
    * @param int $depth
+   *   The depth.
    * @param string $menu_link
+   *   The menu link.
+   *
    * @return array
+   *   The form.
    */
   protected function buildOverviewFormWithDepth(array &$form, FormStateInterface $form_state, $depth = 1, $menu_link = NULL) {
     // Ensure that menu_overview_form_submit() knows the parents of this form
@@ -52,7 +58,7 @@ class MenuFormController extends DefaultMenuFormController {
       $form_state->set('menu_overview_form_parents', []);
     }
 
-    // Use Menu UI adminforms
+    // Use Menu UI adminforms.
     $form['#attached']['library'][] = 'menu_ui/drupal.menu_ui.adminforms';
 
     $form['links'] = array(
@@ -93,9 +99,11 @@ class MenuFormController extends DefaultMenuFormController {
 
     // No Links available (Empty menu)
     $form['links']['#empty'] = $this->t('There are no menu links yet. <a href=":url">Add link</a>.', [
-      ':url' => $this->url('entity.menu.add_link_form', ['menu' => $this->entity->id()], [
-        'query' => ['destination' => $this->entity->url('edit-form')],
-      ]),
+      ':url' => Url::fromRoute(
+        'entity.menu.add_link_form',
+        ['menu' => $this->entity->id()],
+        ['query' => ['destination' => $this->entity->toUrl('edit-form')->toString()]]
+      ),
     ]);
 
     // Get the menu tree if it's not in our property.
@@ -116,19 +124,92 @@ class MenuFormController extends DefaultMenuFormController {
 
     $links = $this->buildOverviewTreeForm($this->tree, $delta);
 
-    $this->process_links($form, $links, $menu_link);
+    $this->processLinks($form, $links, $menu_link);
 
     return $form;
   }
 
   /**
+   * Format the links appropriately so draggable views will work.
+   *
+   * @param array $form
+   *   The form array.
+   * @param array $links
+   *   An array of links.
+   * @param string $menu_link
+   *   A menu link plugin id.
+   */
+  public function processLinks(&$form, &$links, $menu_link) {
+    foreach (Element::children($links) as $id) {
+      if (isset($links[$id]['#item'])) {
+        $element = $links[$id];
+
+        $form['links'][$id]['#item'] = $element['#item'];
+
+        // TableDrag: Mark the table row as draggable.
+        $form['links'][$id]['#attributes'] = $element['#attributes'];
+        $form['links'][$id]['#attributes']['class'][] = 'draggable';
+
+        // TableDrag: Sort the table row according to its existing/configured
+        // weight.
+        $form['links'][$id]['#weight'] = $element['#item']->link->getWeight();
+
+        // Add special classes to be used for tabledrag.js.
+        $element['parent']['#attributes']['class'] = array('menu-parent');
+        $element['weight']['#attributes']['class'] = array('menu-weight');
+        $element['id']['#attributes']['class'] = array('menu-id');
+
+        $form['links'][$id]['title'] = array(
+          array(
+            '#theme' => 'indentation',
+            '#size' => $element['#item']->depth - 1,
+          ),
+          $element['title'],
+        );
+
+        $form['links'][$id]['root'][] = array();
+
+        if ($form['links'][$id]['#item']->hasChildren) {
+          if (is_null($menu_link) || (isset($menu_link) && $menu_link != $element['#item']->link->getPluginId())) {
+            $uri = Url::fromRoute('bigmenu.menu_link', array(
+              'menu' => $this->entity->id(),
+              'menu_link' => $element['#item']->link->getPluginId(),
+            ));
+
+            $form['links'][$id]['root'][] = array(
+              '#type' => 'link',
+              '#title' => t('Edit child items'),
+              '#url' => $uri,
+            );
+          }
+        }
+
+        $form['links'][$id]['enabled'] = $element['enabled'];
+        $form['links'][$id]['enabled']['#wrapper_attributes']['class'] = array('checkbox', 'menu-enabled');
+
+        $form['links'][$id]['weight'] = $element['weight'];
+
+        // Operations (dropbutton) column.
+        $form['links'][$id]['operations'] = $element['operations'];
+
+        $form['links'][$id]['id'] = $element['id'];
+        $form['links'][$id]['parent'] = $element['parent'];
+      }
+    }
+  }
+
+  /**
    * Gets the menu tree.
    *
-   * @param $depth
-   * @param null $root
+   * @param int $depth
+   *   The depth.
+   * @param string $root
+   *   An optional root menu link plugin id.
+   *
    * @return \Drupal\Core\Menu\MenuLinkTreeElement[]
+   *   An array of menu link tree elements.
    */
-  public function getTree($depth, $root = null) {
+  protected function getTree($depth, $root = NULL) {
     $tree_params = new MenuTreeParameters();
     $tree_params->setMaxDepth($depth);
 
@@ -153,10 +234,12 @@ class MenuFormController extends DefaultMenuFormController {
   /**
    * Append a child's subtree to the parent tree.
    *
-   * @param $depth
-   * @param $root
+   * @param int $depth
+   *   The depth.
+   * @param string $root
+   *   An optional root menu link plugin id.
    */
-  public function appendSubtree($depth, $root) {
+  protected function appendSubtree($depth, $root) {
     // Clear out the overview tree form which has the old tree info in it.
     $this->overviewTreeForm = array('#tree' => TRUE);
 
@@ -166,130 +249,6 @@ class MenuFormController extends DefaultMenuFormController {
     // Add it to the larger tree we're rendering.
     $root_key = key($slice_tree);
     $this->tree[$root_key]->subtree = &$slice_tree[$root_key]->subtree;
-  }
-
-  /**
-   * Format the links appropriately so draggable views will work.
-   * @param $form
-   * @param $links
-   * @param $menu_link
-   */
-  public function process_links(&$form, &$links, $menu_link) {
-    foreach (Element::children($links) as $id) {
-      if (isset($links[$id]['#item'])) {
-        $element = $links[$id];
-
-        $form['links'][$id]['#item'] = $element['#item'];
-
-        // TableDrag: Mark the table row as draggable.
-        $form['links'][$id]['#attributes'] = $element['#attributes'];
-        $form['links'][$id]['#attributes']['class'][] = 'draggable';
-
-        // TableDrag: Sort the table row according to its existing/configured weight.
-        $form['links'][$id]['#weight'] = $element['#item']->link->getWeight();
-
-        // Add special classes to be used for tabledrag.js.
-        $element['parent']['#attributes']['class'] = array('menu-parent');
-        $element['weight']['#attributes']['class'] = array('menu-weight');
-        $element['id']['#attributes']['class'] = array('menu-id');
-
-        $form['links'][$id]['title'] = array(
-          array(
-            '#theme' => 'indentation',
-            '#size' => $element['#item']->depth - 1,
-          ),
-          $element['title'],
-        );
-
-        $form['links'][$id]['enabled'] = $element['enabled'];
-        $form['links'][$id]['enabled']['#wrapper_attributes']['class'] = array('checkbox', 'menu-enabled');
-
-        $form['links'][$id]['weight'] = $element['weight'];
-
-        // Operations (dropbutton) column.
-        $form['links'][$id]['operations'] = $element['operations'];
-
-        $form['links'][$id]['id'] = $element['id'];
-        $form['links'][$id]['parent'] = $element['parent'];
-
-        $mlid = (int)$links[$id]['#item']->link->getMetaData()['entity_id'];
-
-        if ($form['links'][$id]['#item']->hasChildren) {
-          if (is_null($menu_link) || (isset($menu_link) && $menu_link->id() != $mlid)) {
-            $form['links'][$id]['title'][] = array(
-              '#type' => 'big_menu_button',
-              '#title' => t('Show Children'),
-              '#value' => 'Edit Children',
-              '#name' => $mlid,
-              '#attributes' => array('mlid' => $mlid),
-              '#url' => '#',
-              '#description' => t('Show children'),
-              '#ajax' => array(
-                // Function to call when event on form element triggered.
-                'callback' => array(
-                  $this,
-                  'Drupal\bigmenu\MenuFormController::bigmenu_ajax_callback'
-                ),
-                // Effect when replacing content. Options: 'none' (default), 'slide', 'fade'.
-                'effect' => 'none',
-                // Javascript event to trigger Ajax. Currently for: 'onchange'.
-                'event' => 'click',
-                'progress' => array(
-                  // Graphic shown to indicate ajax. Options: 'throbber' (default), 'bar'.
-                  'type' => 'throbber',
-                  // Message to show along progress graphic. Default: 'Please wait...'.
-                  'message' => NULL,
-                ),
-              ),
-            );
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * AJAX function called when a "Show Children" button is pressed.
-   *
-   * @param array $form
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   * @return AjaxResponse
-   */
-  public function bigmenu_ajax_callback(array &$form, FormStateInterface $form_state) {
-    $elem = $form_state->getTriggeringElement();
-    $menuLinkId = $elem['#attributes']['mlid'];
-
-    $menu_link = \Drupal::entityTypeManager()->getStorage('menu_link_content')->load($menuLinkId);
-
-    // Instantiate an AjaxResponse Object to return.
-    $ajax_response = new AjaxResponse();
-
-    $form_state->setRebuild(TRUE);
-
-    $this->appendSubtree(10, $menu_link);
-
-    $form = $this->buildOverviewFormWithDepth($form, $form_state, 1, $menu_link);
-
-    // Add a command to execute on form, jQuery .html() replaces content between tags.
-    $ajax_response->addCommand(new HtmlCommand('#block-seven-content', $form));
-
-    // Return the AjaxResponse Object.
-    return $ajax_response;
-  }
-
-  /**
-   * Header function to print the tree.
-   * @param $tree
-   */
-  public function printTree($tree) {
-    foreach ($tree as $key => $leaf) {
-      drupal_set_message($key . " count: " . $leaf->count());
-      if ($leaf->count() > 1) {
-        drupal_set_message('---subtree---' . $key);
-        $this->printTree($leaf->subtree);
-        drupal_set_message('---endsubtree---' . $key);
-      }
-    }
   }
 
 }

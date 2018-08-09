@@ -98,7 +98,7 @@ class MenuSliceFormController extends MenuFormLinkController {
 
     $links = $this->buildOverviewTreeForm($this->tree, $delta);
 
-    $this->process_links($form, $links, $menu_link_id);
+    $this->processLinks($form, $links, $menu_link_id);
 
     return $form;
   }

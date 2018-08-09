@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\bigmenu\Routing\RouteSubscriber.
- */
 
 namespace Drupal\bigmenu\Routing;
 
