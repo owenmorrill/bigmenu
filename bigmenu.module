@@ -33,7 +33,7 @@ function bigmenu_menu() {
   // Edit just a part of a menu. Arg 5 is the parent menu link id.
   $items['admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link'] = array(
     'title' => 'Edit a slice of a menu',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('bigmenu_slice_form', 4, 7),
     'title callback' => 'bigmenu_parent_title',
     'title arguments' => array(7),
@@ -52,7 +52,7 @@ function bigmenu_menu() {
   );
   $items['admin/config/user-interface/bigmenu'] = array(
     'title' => 'Big Menu Settings',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('bigmenu_settings'),
     'description' => 'Configure settings for bigmenu module.',
     'access arguments' => array('administer bigmenu'),
@@ -73,7 +73,7 @@ function bigmenu_menu() {
 function bigmenu_menu_alter(&$items) {
   $items['admin/structure/menu/manage/%menu']['page arguments'] = array('bigmenu_overview_form', 4);
   $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
-  $items['admin/structure/menu/manage/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
+  $items['admin/structure/menu/manage/%menu']['file path'] = backdrop_get_path('module', 'bigmenu');
 }
 
 /**

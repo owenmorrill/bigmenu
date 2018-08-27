@@ -162,11 +162,11 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $depth = variable_get('bigmenu_depth', 1);
 
   $form_state = form_state_defaults();
-  $old_form = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
-  $output = drupal_render($old_form);
+  $old_form = backdrop_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
+  $output = backdrop_render($old_form);
 
   // This returns data to the browser immediately.
-  drupal_json_output(array('status' => TRUE, 'data' => $output));
+  backdrop_json_output(array('status' => TRUE, 'data' => $output));
 
   // After that we will do the slower job of updating the form cache.
   // Reload the bigmenu_overview_form,
@@ -175,7 +175,7 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $form_state['build_info']['args'] = $args;
   $form_state['values'] = array();
   $form_state['rebuild_info']['copy']['#build_id'] = $form_build_id;
-  drupal_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
+  backdrop_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
 
   exit;
 }
@@ -189,8 +189,8 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
  * @ingroup themeable
  */
 function theme_bigmenu_overview_form($form) {
-  drupal_add_js(drupal_get_path('module', 'bigmenu') . '/bigmenu.js');
-  drupal_add_css(drupal_get_path('module', 'bigmenu') . '/bigmenu.css');
+  backdrop_add_js(backdrop_get_path('module', 'bigmenu') . '/bigmenu.js');
+  backdrop_add_css(backdrop_get_path('module', 'bigmenu') . '/bigmenu.css');
   return theme('menu_overview_form', $form);
 }
 
@@ -228,7 +228,7 @@ function bigmenu_settings($form, &$form_state) {
  * @see _menu_overview_tree_form()
  */
 function _bigmenu_overview_tree_form($tree, $depth = 0) {
-  $form = &drupal_static(__FUNCTION__, array('#tree' => TRUE));
+  $form = &backdrop_static(__FUNCTION__, array('#tree' => TRUE));
   foreach ($tree as $data) {
     $item = $data['link'];
     // Don't show callbacks; these have $item['hidden'] < 0.
